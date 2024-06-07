@@ -208,6 +208,11 @@ Traverser
 -----------
 */
 
+type visitor map[string]func(n *node, p node)
+
+func traverser(a ast, v visitor) {
+}
+
 func main() {
 	tokens := tokenizer("(add 32 (subtract 69 420))")
 	ast_node := parser(tokens)
