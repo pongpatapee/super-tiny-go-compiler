@@ -211,6 +211,44 @@ Traverser
 type visitor map[string]func(n *node, p node)
 
 func traverser(a ast, v visitor) {
+	traverseNode(node(a), node{}, v)
+}
+
+func traverseNode(n node, p node, v visitor) {
+	for k, method := range v {
+		if n.kind == k {
+			method(&n, p)
+		}
+	}
+
+	switch n.kind {
+	case "Program":
+		traverseArray(n.body, n, v)
+	case "Call Expression":
+		traverseArray(n.params, n, v)
+	case "NumberLiteral":
+		break
+	default:
+		log.Fatal(n.kind)
+	}
+}
+
+func traverseArray(nodes []node, parent node, v visitor) {
+	for _, child := range nodes {
+		traverseNode(child, parent, v)
+	}
+}
+
+func prettyPrintTokens(tokens []token) {
+	fmt.Println("[")
+	for _, tok := range tokens {
+		fmt.Print("\t")
+		fmt.Println(tok)
+	}
+	fmt.Println("]")
+}
+
+func prettyPrintAST(node ast) {
 }
 
 func main() {
@@ -218,8 +256,10 @@ func main() {
 	ast_node := parser(tokens)
 
 	fmt.Println("Tokens:")
-	fmt.Println(tokens)
+	// fmt.Println(tokens)
+	prettyPrintTokens(tokens)
 
 	fmt.Println("\nAST:")
 	fmt.Println(ast_node)
+	// prettyPrintAST(ast_node)
 }
