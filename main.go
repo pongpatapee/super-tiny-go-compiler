@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 )
 
 /*
@@ -285,6 +286,37 @@ func transformer(a ast) ast {
 	})
 
 	return nast
+}
+
+func codeGenerator(n node) string {
+	switch n.kind {
+	case "Program":
+		var result []string
+		for _, ast_node := range n.body {
+			result = append(result, codeGenerator(ast_node))
+		}
+		return strings.Join(result, "\n")
+	case "ExpressionStatement":
+		return codeGenerator(*n.expression) + ";"
+	case "CallExpression":
+		var ra []string
+		c := codeGenerator(*n.callee)
+
+		for _, ast_node := range *n.arguments {
+			ra = append(ra, codeGenerator(ast_node))
+		}
+
+		r := strings.Join(ra, ",")
+		return c + "(" + r + ")"
+
+	case "Identifier":
+		return n.name
+	case "NumberLiteral":
+		return n.value
+	default:
+		log.Fatal("err")
+		return ""
+	}
 }
 
 // Pretty printers
