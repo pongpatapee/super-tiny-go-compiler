@@ -225,7 +225,7 @@ func traverseNode(n node, p node, v visitor) {
 	switch n.kind {
 	case "Program":
 		traverseArray(n.body, n, v)
-	case "Call Expression":
+	case "CallExpression":
 		traverseArray(n.params, n, v)
 	case "NumberLiteral":
 		break
@@ -268,6 +268,7 @@ func transformer(a ast) ast {
 					kind: "Identifier",
 					name: n.name,
 				},
+				arguments: new([]node), // This line caused me 2 hours of debugging a nil pointer....
 			}
 
 			n.context = e.arguments
@@ -288,6 +289,12 @@ func transformer(a ast) ast {
 	return nast
 }
 
+/*
+-----------
+Code Generator
+-----------
+*/
+
 func codeGenerator(n node) string {
 	switch n.kind {
 	case "Program":
@@ -306,7 +313,7 @@ func codeGenerator(n node) string {
 			ra = append(ra, codeGenerator(ast_node))
 		}
 
-		r := strings.Join(ra, ",")
+		r := strings.Join(ra, ", ")
 		return c + "(" + r + ")"
 
 	case "Identifier":
@@ -319,28 +326,24 @@ func codeGenerator(n node) string {
 	}
 }
 
-// Pretty printers
-func prettyPrintTokens(tokens []token) {
-	fmt.Println("[")
-	for _, tok := range tokens {
-		fmt.Print("\t")
-		fmt.Println(tok)
-	}
-	fmt.Println("]")
-}
+/*
+-----------
+Compiler
+-----------
+*/
 
-func prettyPrintAST(node ast) {
+func compiler(input string) string {
+	tokens := tokenizer(input)
+	ast_node := parser(tokens)
+	nast := transformer(ast_node)
+	output := codeGenerator(node(nast))
+
+	return output
 }
 
 func main() {
-	tokens := tokenizer("(add 32 (subtract 69 420))")
-	ast_node := parser(tokens)
+	program := "(add 32 (subtract 69 420))"
+	output := compiler(program)
 
-	fmt.Println("Tokens:")
-	// fmt.Println(tokens)
-	prettyPrintTokens(tokens)
-
-	fmt.Println("\nAST:")
-	fmt.Println(ast_node)
-	// prettyPrintAST(ast_node)
+	fmt.Println(output)
 }
